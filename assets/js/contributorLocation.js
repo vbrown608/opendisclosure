@@ -19,6 +19,7 @@
                 var el = data[i],
                     amount = parseInt(el.Tran_Amt1),
                     candidate = el.Filer_NamL,
+<<<<<<< HEAD
                     city = el.Tran_City,
                     state = el.Tran_State;
 
@@ -44,6 +45,21 @@
             data = _.sortBy(data, function(el) { return -el.oakland; });
             data = _.filter(data, function(el) { return !isNaN(el.total); });
             //console.log(data);
+=======
+                    city = el.Tran_City;
+
+                if (this.amounts[candidate] && city == 'Oakland') {
+                    this.amounts[candidate] += amount;
+                } else if (city == 'Oakland') {
+                    this.amounts[candidate] = amount;
+                }
+            }
+
+            data = _.collect(this.amounts, function(v, k) { return {name: k, amount: v}});
+            data = _.sortBy(data, function(el) { return -el.amount; });
+            data = _.filter(data, function(el) { return !isNaN(el.amount); });
+            console.log(data);
+>>>>>>> Bar showing Oakland contributions only
 
 
             var margin = {top: 30, right: 40, bottom: 300, left: 50},
@@ -74,7 +90,11 @@
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
             x.domain(data.map(function(d) { return d.name; }));
+<<<<<<< HEAD
             y.domain([0, d3.max(data, function(d) { return d.total; })]);
+=======
+            y.domain([0, d3.max(data, function(d) { return d.amount; })]);
+>>>>>>> Bar showing Oakland contributions only
 
             svg.append("g")
               .attr("class", "x axis")
@@ -98,6 +118,7 @@
               .style("text-anchor", "end")
               .text("Dollar amount");
 
+<<<<<<< HEAD
 
 			var valgroup = svg.selectAll('g.valgroup')
     			.data(data)
@@ -129,6 +150,16 @@
 
 
 
+=======
+            svg.selectAll(".bar")
+              .data(data)
+            .enter().append("rect")
+              .attr("class", "bar")
+              .attr("x", function(d) { return x(d.name); })
+              .attr("width", x.rangeBand())
+              .attr("y", function(d) { return y(d.amount); })
+              .attr("height", function(d) { return height - y(d.amount); });
+>>>>>>> Bar showing Oakland contributions only
 
 
             function type(d) {
