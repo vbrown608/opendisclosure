@@ -116,15 +116,6 @@
   					return colors[i];
   				});
 
-            svg.selectAll(".bar")
-              .data(data)
-            .enter().append("rect")
-              .attr("class", "bar")
-              .attr("x", function(d) { return x(d.name); })
-              .attr("width", x.rangeBand())
-              .attr("y", function(d) { return y(d.oakland); })
-              .attr("height", function(d) { return height - y(d.oakland); });
-
 
 
             function type(d) {
