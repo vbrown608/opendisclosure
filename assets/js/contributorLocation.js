@@ -37,15 +37,16 @@
 	                	} 
              	}
             }
-            //console.log(this.amounts);
 
+            // Convert data to a list of objects
             data = _.collect(this.amounts, function(v, k) 
             	{ return {name: k, total: v['total'], oakland: v['oakland'], california: v['california']} });
-            data = _.sortBy(data, function(el) { return -el.oakland; });
-            data = _.filter(data, function(el) { return !isNaN(el.total); });
-            //console.log(data);
+            data = _.sortBy(data, function(el) { return -el.total; });
+            data = _.filter(data, function(el) { 
+            		return !isNaN(el.total) || !isNaN(el.oakland) || isNaN(el.california); 
+            	});
 
-
+            // Set variables for D3
             var margin = {top: 30, right: 40, bottom: 300, left: 50},
                 width = 960 - margin.left - margin.right,
                 height = 800 - margin.top - margin.bottom;
@@ -76,8 +77,9 @@
             x.domain(data.map(function(d) { return d.name; }));
             y.domain([0, d3.max(data, function(d) { return d.total; })]);
 
+            // Set up the chart
             svg.append("g")
-              .attr("class", "x axis")
+              .attr("class", "x-axis")
               .attr("transform", "translate(0," + height + ")")
               .call(xAxis)
               .selectAll("text")
@@ -89,7 +91,7 @@
                 });
 
             svg.append("g")
-              .attr("class", "y axis")
+              .attr("class", "y-axis")
               .call(yAxis)
             .append("text")
               .attr("transform", "rotate(-90)")
@@ -98,43 +100,60 @@
               .style("text-anchor", "end")
               .text("Dollar amount");
 
-
+            // Create a container for each bar.
 			var valgroup = svg.selectAll('g.valgroup')
     			.data(data)
 			.enter().append('g')
   				.attr('class', 'g')
   				.attr("transform", function(d) { return "translate(" + x(d.name) + ",0)"; });
 
-  			var colors = ['pink', 'purple', 'red']
+  			var colors = ["#98abc5", "#a05d56", "#ff8c00"]
 
-  			valgroup.selectAll('rect')
-  				.data( function(d) { return [d.total, d.california, d.oakland]; })
+  			// Fill the bars with stacked rectangles.
+  			var rectangles = valgroup.selectAll('rect')
+  				.data( function(d) { // 'enter' needs data stored as a list
+  					return [[d.total, d.total-d.california],
+  					[d.california, d.california-d.oakland], 
+  					[d.oakland, d.oakland]]; 
+  				})
   			.enter().append('rect')
   				.attr('width', x.rangeBand())
-  				.attr('y', function(d) { return y(d); })
-  				.attr('height', function(d) { return height - y(d); })
+  				.attr('y', function(d) { return y(d[0]); })
+  				.attr('height', function(d) { return height - y(d[1]); })
   				.attr('fill', function(d, i) { 
   					return colors[i];
   				});
 
-            // svg.selectAll(".bar")
-            //   .data(data)
-            // .enter().append("rect")
-            //   .attr("class", "bar")
-            //   .attr("x", function(d) { return x(d.name); })
-            //   .attr("width", x.rangeBand())
-            //   .attr("y", function(d) { return y(d.oakland); })
-            //   .attr("height", function(d) { return height - y(d.oakland); });
+          d3.selectAll("input")
+            .on("change", update);
 
+          function update() {
+            var value = this.value;
 
-
-
-
-
-            function type(d) {
-              d.frequency = +d.frequency;
-              return d;
+            if (value == 'total') {
+              y.domain([0, d3.max(data, function(d) { return d.total; })]);
+            } else {
+              y.domain([0, 1]);
             }
+            d3.selectAll('.y-axis').call(yAxis);
+
+            rectangles = rectangles.data(function(d) {
+              if (value == 'total') {
+                return [[d.total, d.total-d.california],
+                [d.california, d.california-d.oakland], 
+                [d.oakland, d.oakland]]; 
+              } else {
+                return [[1, (d.total-d.california)/d.total],
+                [d.california/d.total, (d.california-d.oakland)/d.total], 
+                [d.oakland/d.total, d.oakland/d.total]]; 
+              }
+            });
+
+            rectangles
+              .attr('width', x.rangeBand())
+              .attr('y', function(d) { return y(d[0]); })
+              .attr('height', function(d) { return height - y(d[1]); });
+          }
 
         }
 
