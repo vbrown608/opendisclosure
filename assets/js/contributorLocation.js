@@ -20,37 +20,72 @@
           city = el.Tran_City,
           state = el.Tran_State;
 
+        // Add candidates
         if (!amounts[candidate]) {
           amounts[candidate] = {
-            'total': 0,
-            'oakland': 0,
-            'california': 0
-          };
+            'dollars' : {
+              'total': 0,
+              'oakland': 0,
+              'california': 0
+            },
+            'donors' : {
+              'total': {},
+              'oakland': {},
+              'california': {}
+            }
+          }
         }
-        amounts[candidate]['total'] += amount;
+
+        // Increment donations and donors
+        amounts[candidate]['dollars']['total'] += amount;
+        amounts[candidate]['donors']['total'][donor] = true
         if (state == 'CA') {
-          amounts[candidate]['california'] += amount;
+          amounts[candidate]['dollars']['california'] += amount;
+          amounts[candidate]['donors']['california'][donor] = true
           if (city == 'Oakland') {
-            amounts[candidate]['oakland'] += amount;
+            amounts[candidate]['dollars']['oakland'] += amount;
+            amounts[candidate]['donors']['oakland'][donor] = true
           }
         }
       }
 
-      // Convert data to a list of objects
+      // Convert data to an array of objects
       data = _.collect(amounts, function(v, k) {
+
+        // Summing donor totals
+        total_donors = _.collect(v['donors']['total'], function(donor, status) {
+          return status;
+        }).length
+        oakland_donors = _.collect(v['donors']['oakland'], function(donor, status) {
+          return status;
+        }).length
+        california_donors = _.collect(v['donors']['california'], function(donor, status) {
+          return status;
+        }).length
+
+
         return {
           name: k,
-          total: v['total'],
-          oakland: v['oakland'],
-          california: v['california']
+          dollars: {
+            total: v['dollars']['total'],
+            oakland: v['dollars']['oakland'],
+            california: v['dollars']['california'] 
+          },
+          donors: {
+            total: total_donors,
+            oakland: oakland_donors,
+            california: california_donors
+          }
         }
       });
       data = _.sortBy(data, function(el) {
-        return -el.total;
+        return -el.dollars.total;
       });
       data = _.filter(data, function(el) {
-        return !isNaN(el.total) || !isNaN(el.oakland) || isNaN(el.california);
+        return !isNaN(el.dollars.total) || !isNaN(el.dollars.oakland) || isNaN(el.dollars.california);
       });
+
+      console.log(data);
 
 
       // Set variables for D3
@@ -127,6 +162,16 @@
         });
 
       var colors = ["#98abc5", "#a05d56", "#ff8c00"]
+
+      // var value = 'dollars';
+      // dataForRect = function() {
+      //   if (value == 'total') {
+      //       return [[d.total, d.total - d.california], [d.california, d.california - d.oakland], [d.oakland, d.oakland]];
+      //     } else {
+      //       return [[1, (d.total - d.california) / d.total], [d.california / d.total, (d.california - d.oakland) / d.total], [d.oakland / d.total, d.oakland / d.total]];
+      //     }
+      //   })
+      // }
 
       // Fill the bars with stacked rectangles.
       var rectangles = valgroup.selectAll('rect')
