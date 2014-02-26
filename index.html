@@ -99,10 +99,14 @@
       <!-- Example row of columns -->
       <div class="row">
         <div class="col-lg-4" id="contributorLocation">
-        <form>
-            <label><input type="radio" name="dataset" value="total" checked> Total</label>
-            <label><input type="radio" name="dataset" value="percent"> Percent</label>
-          </form>
+        <form id="scale_type">
+          <label><input type="radio" name="dataset" value="total" checked> Total</label>
+          <label><input type="radio" name="dataset" value="percent"> Percent</label>
+        </form>
+        <form id="count_type">
+          <label><input type="radio" name="dataset" value="dollars" checked> Dollars</label>
+          <label><input type="radio" name="dataset" value="donors"> Donors</label>
+        </form>
 
           <script>
             // topContributorsPeople(); 
