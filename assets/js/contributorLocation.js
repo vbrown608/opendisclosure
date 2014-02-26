@@ -23,12 +23,12 @@
         // Add candidates
         if (!amounts[candidate]) {
           amounts[candidate] = {
-            'dollars' : {
+            'dollars': {
               'total': 0,
               'oakland': 0,
               'california': 0
             },
-            'donors' : {
+            'donors': {
               'total': {},
               'oakland': {},
               'california': {}
@@ -69,7 +69,7 @@
           dollars: {
             total: v['dollars']['total'],
             oakland: v['dollars']['oakland'],
-            california: v['dollars']['california'] 
+            california: v['dollars']['california']
           },
           donors: {
             total: total_donors,
@@ -85,8 +85,9 @@
         return !isNaN(el.dollars.total) || !isNaN(el.dollars.oakland) || isNaN(el.dollars.california);
       });
 
-      console.log(data);
-
+      // Initialize chart type (updates come from radio buttons)
+      var scale_type = 'total'; // total or percent
+      var count_type = 'dollars'; // dollars or donors
 
       // Set variables for D3
       var margin = {
@@ -125,7 +126,7 @@
         return d.name;
       }));
       y.domain([0, d3.max(data, function(d) {
-        return d.total;
+        return d[count_type].total;
       })]);
 
       // Set up the chart
@@ -144,13 +145,13 @@
       svg.append("g")
         .attr("class", "y-axis")
         .call(yAxis)
-      .append("text")
+        .append("text")
         .attr("class", "label")
         .attr("transform", "rotate(-90)")
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
-        .text("Dollar amount");
+        .text(scale_type);
 
       // Create a container for each bar.
       var valgroup = svg.selectAll('g.valgroup')
@@ -163,21 +164,28 @@
 
       var colors = ["#98abc5", "#a05d56", "#ff8c00"]
 
-      // var value = 'dollars';
-      // dataForRect = function() {
-      //   if (value == 'total') {
-      //       return [[d.total, d.total - d.california], [d.california, d.california - d.oakland], [d.oakland, d.oakland]];
-      //     } else {
-      //       return [[1, (d.total - d.california) / d.total], [d.california / d.total, (d.california - d.oakland) / d.total], [d.oakland / d.total, d.oakland / d.total]];
-      //     }
-      //   })
-      // }
+      rectangleData = function(d) {
+        d = d[count_type];
+        if (scale_type == 'total') {
+          result = [
+            [d.total, d.total - d.california],
+            [d.california, d.california - d.oakland],
+            [d.oakland, d.oakland]
+          ];
+          return result;
+        } else {
+          result = [
+            [1, (d.total - d.california) / d.total],
+            [d.california / d.total, (d.california - d.oakland) / d.total],
+            [d.oakland / d.total, d.oakland / d.total]
+          ];
+          return result;
+        }
+      }
 
       // Fill the bars with stacked rectangles.
       var rectangles = valgroup.selectAll('rect')
-        .data(function(d) { // 'enter' takes data stored as a list
-          return [[d.total, d.total - d.california], [d.california, d.california - d.oakland], [d.oakland, d.oakland]];
-        })
+        .data(rectangleData)
         .enter().append('rect')
         .attr('width', x.rangeBand())
         .attr('y', function(d) {
@@ -194,33 +202,30 @@
         .on("change", update);
 
       function update() {
-        var value = this.value;
+        scale_type = $("#scale_type input[type='radio']:checked").val();
+        count_type = $("#count_type input[type='radio']:checked").val();
+        //console.log(val);
+        //scale_type = this.value;
 
-        if (value == 'total') {
+        if (scale_type == 'total') {
           format = d3.format("$.0");
           y.domain([0, d3.max(data, function(d) {
-            return d.total;
+            return d[count_type].total;
           })]);
         } else {
           format = d3.format("%.0");
           y.domain([0, 1]);
         }
 
-        var yAxis = d3.svg.axis()
+        yAxis = d3.svg.axis()
           .scale(y)
           .orient("left")
           .tickFormat(format);
 
         d3.selectAll('.y-axis').call(yAxis)
-        d3.selectAll('.y-axis .label').text(value);
+        d3.selectAll('.y-axis .label').text(scale_type);
 
-        rectangles = rectangles.data(function(d) {
-          if (value == 'total') {
-            return [[d.total, d.total - d.california], [d.california, d.california - d.oakland], [d.oakland, d.oakland]];
-          } else {
-            return [[1, (d.total - d.california) / d.total], [d.california / d.total, (d.california - d.oakland) / d.total], [d.oakland / d.total, d.oakland / d.total]];
-          }
-        });
+        rectangles = rectangles.data(rectangleData);
 
         rectangles
           .attr('width', x.rangeBand())
