@@ -106,6 +106,10 @@
         .scale(x)
         .orient("bottom");
 
+      x.domain(data.map(function(d) {
+        return d.name;
+      }));
+
       var y = d3.scale.linear()
         .range([height, 0]);
 
@@ -134,20 +138,25 @@
       }
       setYFormat();
 
+      yLabel = function() {
+        var name = "";
+        if (scale_type == 'percent') {
+          name += 'Percent of ';
+        }
+        if (count_type == 'dollars') {
+          name += 'Dollars Raised';
+        } else {
+          name += 'Donors';
+        }
+        return name;
+      }
+
       var svg = d3.select("body").append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      x.domain(data.map(function(d) {
-        return d.name;
-      }));
-      y.domain([0, d3.max(data, function(d) {
-        return d[count_type].total;
-      })]);
-
-      // Set up the chart
       svg.append("g")
         .attr("class", "x-axis")
         .attr("transform", "translate(0," + height + ")")
@@ -169,7 +178,7 @@
         .attr("y", 6)
         .attr("dy", ".71em")
         .style("text-anchor", "end")
-        .text(scale_type);
+        .text(yLabel());
 
       // Create a container for each bar.
       var valgroup = svg.selectAll('g.valgroup')
@@ -223,13 +232,13 @@
         scale_type = $("#scale_type input[type='radio']:checked").val();
         count_type = $("#count_type input[type='radio']:checked").val();
 
+        // Update the scale and label on the way access
         setYFormat();
-
         d3.selectAll('.y-axis').call(yAxis)
-        d3.selectAll('.y-axis .label').text(scale_type);
+        d3.selectAll('.y-axis .label').text(yLabel());
 
+        // Update the stacked bars
         rectangles = rectangles.data(rectangleData);
-
         rectangles
           .attr('width', x.rangeBand())
           .attr('y', function(d) {
