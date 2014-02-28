@@ -189,7 +189,9 @@
           return "translate(" + x(d.name) + ",0)";
         });
 
-      var colors = ["#98abc5", "#a05d56", "#ff8c00"]
+      var colors = [{'name':'Total', 'color':"#98abc5"},
+      {'name':'California', 'color':"#a05d56"},
+      {'name':'Oakland', 'color':"#ff8c00"}]
 
       rectangleData = function(d) {
         d = d[count_type];
@@ -222,7 +224,7 @@
           return height - y(d[1]);
         })
         .attr('fill', function(d, i) {
-          return colors[i];
+          return colors[i].color;
         });
 
       d3.selectAll("input")
@@ -234,20 +236,45 @@
 
         // Update the scale and label on the way access
         setYFormat();
-        d3.selectAll('.y-axis').call(yAxis)
+        d3.selectAll('.y-axis').call(yAxis);
         d3.selectAll('.y-axis .label').text(yLabel());
 
         // Update the stacked bars
         rectangles = rectangles.data(rectangleData);
         rectangles
+          .transition()
           .attr('width', x.rangeBand())
           .attr('y', function(d) {
             return y(d[0]);
           })
           .attr('height', function(d) {
             return height - y(d[1]);
-          });
+          })
+          .duration(1000);
       }
+
+      var legend = svg.selectAll(".legend")
+        .data(colors)
+        .enter().append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) {
+          return "translate(0," + i * 20 + ")";
+        });
+
+      legend.append("rect")
+        .attr("x", width - 18)
+        .attr("width", 18)
+        .attr("height", 18)
+        .style("fill", function(d) { return d.color; });
+
+      legend.append("text")
+        .attr("x", width - 24)
+        .attr("y", 9)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(function(d) {
+          return d.name;
+        });
     }
 
     return App;
