@@ -99,22 +99,40 @@
         width = 960 - margin.left - margin.right,
         height = 800 - margin.top - margin.bottom;
 
-      var format = d3.format("$.0");
-
       var x = d3.scale.ordinal()
         .rangeRoundBands([0, width], .1);
-
-      var y = d3.scale.linear()
-        .range([height, 0]);
 
       var xAxis = d3.svg.axis()
         .scale(x)
         .orient("bottom");
 
-      var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left")
-        .tickFormat(format);
+      var y = d3.scale.linear()
+        .range([height, 0]);
+
+      setYFormat = function() {
+        var format_string;
+        if (scale_type == 'percent') {
+          y.domain([0, 1]);
+          format_string = "%.0";
+
+        } else {
+          y.domain([0, d3.max(data, function(d) {
+            return d[count_type].total;
+          })]);
+          if (count_type == 'dollars') {
+            format_string = "$.0";
+          } else {
+            format_string = "0";
+          }
+        }
+        format = d3.format(format_string);
+
+        yAxis = d3.svg.axis()
+          .scale(y)
+          .orient("left")
+          .tickFormat(format);
+      }
+      setYFormat();
 
       var svg = d3.select("body").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -204,23 +222,8 @@
       function update() {
         scale_type = $("#scale_type input[type='radio']:checked").val();
         count_type = $("#count_type input[type='radio']:checked").val();
-        //console.log(val);
-        //scale_type = this.value;
 
-        if (scale_type == 'total') {
-          format = d3.format("$.0");
-          y.domain([0, d3.max(data, function(d) {
-            return d[count_type].total;
-          })]);
-        } else {
-          format = d3.format("%.0");
-          y.domain([0, 1]);
-        }
-
-        yAxis = d3.svg.axis()
-          .scale(y)
-          .orient("left")
-          .tickFormat(format);
+        setYFormat();
 
         d3.selectAll('.y-axis').call(yAxis)
         d3.selectAll('.y-axis .label').text(scale_type);
