@@ -3,6 +3,7 @@
   var App = function() {};
 
   App.prototype.init = function(chartEl, data) {
+    // Processing data from CSV
     var amounts = {};
     for (var i = 0; i < data.length; i++) {
       var el = data[i],
@@ -76,22 +77,25 @@
     data = _.sortBy(data, function(el) {
       return -el.dollars.total;
     });
+    // End of data processing
 
-
-    // Initialize chart type (updates come from radio buttons)
-    var formHTML = "<form id='scale_type'>\
-        <label><input type='radio' name='dataset' value='total' checked> Total</label>\
-        <label><input type='radio' name='dataset' value='percent'> Percent</label>\
-      </form>\
-      <form id='count_type'>\
-        <label><input type='radio' name='dataset' value='dollars' checked> Dollars</label>\
-        <label><input type='radio' name='dataset' value='donors'> Donors</label>\
-      </form>";
+    // Add radio buttons
+    var formHTML = "<div id='chart-options'>\
+        <form id='scale_type'>\
+          <label><input type='radio' name='dataset' value='total' checked> Total</label>\
+          <label><input type='radio' name='dataset' value='percent'> Percent</label>\
+        </form>\
+        <form id='count_type'>\
+          <label><input type='radio' name='dataset' value='dollars' checked> Dollars</label>\
+          <label><input type='radio' name='dataset' value='donors'> Donors</label>\
+        </form>\
+      </div>";
     $(chartEl).append(formHTML);
-    var scale_type = 'total'; // total or percent
-    var count_type = 'dollars'; // dollars or donors
+    var scale_type = 'total'; // total or percent.
+    var count_type = 'dollars'; // dollars or donors.
 
-    // Set variables for D3
+    var labels = ['Others', 'California', 'Oakland'];
+
     var margin = {
       top: 30,
       right: 40,
@@ -101,6 +105,7 @@
       width = 960 - margin.left - margin.right,
       height = 800 - margin.top - margin.bottom;
 
+    // Define variables for D3 axis.
     var x = d3.scale.ordinal()
       .rangeRoundBands([0, width], .1); //.1
 
@@ -159,6 +164,7 @@
       .append("g")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    // Create x and y axis.
     svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
@@ -192,17 +198,7 @@
         return "translate(" + x(d.name) + ",0)";
       });
 
-    var colors = [{
-      'name': 'Total',
-      'color': "#4682B4"
-    }, {
-      'name': 'California',
-      'color': "#4F93CC"
-    }, {
-      'name': 'Oakland',
-      'color': "#B0DBFF"
-    }]
-
+    // Fill the bars with stacked rectangles.
     rectangleData = function(d) {
       d = d[count_type];
       if (d.total == 0) { // Avoid divide by 0 errors
@@ -224,7 +220,6 @@
       return result;
     }
 
-    // Fill the bars with stacked rectangles.
     var rectangles = valgroup.selectAll('rect')
       .data(rectangleData)
       .enter().append('rect')
@@ -235,23 +230,24 @@
       .attr('height', function(d) {
         return height - y(d[1]);
       })
-      .attr('fill', function(d, i) {
-        return colors[i].color;
+      .attr('class', function(d, i) {
+        return labels[i];
       });
 
     d3.selectAll("input")
       .on("change", update);
 
+    // Update the chart when a radio button is clicked.
     function update() {
       scale_type = $("#scale_type input[type='radio']:checked").val();
       count_type = $("#count_type input[type='radio']:checked").val();
 
-      // Update the scale and label on the way access
+      // Update the scale and label on y axis.
       setYFormat();
       d3.selectAll('.y.axis').call(yAxis);
       d3.selectAll('.y.axis .label').text(yLabel());
 
-      // Update the stacked bars
+      // Update the stacked bars.
       rectangles = rectangles.data(rectangleData);
       rectangles
         .transition()
@@ -265,20 +261,9 @@
         .duration(1000);
     }
 
-    // d3.select(chartEl)
-    //   .select('.bar')
-    //   .selectAll('rect')
-    // .append('text')
-    //   .attr("x", 5)
-    //   .attr("y", 5)
-    //   .attr("dy", ".35em")
-    //   .style("text-anchor", "end")
-    //   .text(function(d, i) {
-    //     return colors[i].name;
-    //   });
-
+    // Add legend.
     var legend = svg.selectAll(".legend")
-      .data(colors)
+      .data(labels)
       .enter().append("g")
       .attr("class", "legend")
       .attr("transform", function(d, i) {
@@ -289,8 +274,8 @@
       .attr("x", width - 18)
       .attr("width", 18)
       .attr("height", 18)
-      .style("fill", function(d) {
-        return d.color;
+      .attr("class", function(d) {
+        return d;
       });
 
     legend.append("text")
@@ -299,7 +284,7 @@
       .attr("dy", ".35em")
       .style("text-anchor", "end")
       .text(function(d) {
-        return d.name;
+        return d;
       });
   }
 
