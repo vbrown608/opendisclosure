@@ -201,15 +201,14 @@
             [d.california, d.california - d.oakland],
             [d.oakland, d.oakland]
           ];
-          return result;
         } else {
           result = [
             [1, (d.total - d.california) / d.total],
             [d.california / d.total, (d.california - d.oakland) / d.total],
             [d.oakland / d.total, d.oakland / d.total]
           ];
-          return result;
         }
+        return result;
       }
 
       // Fill the bars with stacked rectangles.
