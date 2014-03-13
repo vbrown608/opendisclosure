@@ -1,5 +1,4 @@
 require 'active_record'
-require 'roo'
 
 Dir['./models/*.rb'].each { |f| require f }
 
@@ -44,7 +43,15 @@ ActiveRecord::Schema.define do
   end
 end
 
-def parse_file(filename)
+def parse_csv(filename)
+  require 'csv'
+  CSV.foreach(filename, headers: :first_row) do |csv|
+    binding.pry
+  end
+end
+
+def parse_xlsx(filename)
+  require 'roo'
   workbook = Roo::Excelx.new(filename)
   parse_contributions_schedule_a(workbook)
 end
@@ -98,5 +105,5 @@ def parse_contribution(row)
 end
 
 if __FILE__ == $0
-  parse_file('../assets/data/efile_COAK_2013.xlsx')
+  parse_csv('../assets/data/data.csv')
 end
