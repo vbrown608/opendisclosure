@@ -9,7 +9,7 @@
 
     for (var i = 0; i < data.length; i++) {
       var el = data[i],
-        amount = parseInt(el.Tran_Amt1);
+        amount = parseInt(el.Tran_Amt1.replace('$', ''));
 
       if (this.amounts[el.Filer_NamL]) {
         this.amounts[el.Filer_NamL] += amount;

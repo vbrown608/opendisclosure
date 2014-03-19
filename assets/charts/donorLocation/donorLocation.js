@@ -7,7 +7,8 @@
     var amounts = {};
     for (var i = 0; i < data.length; i++) {
       var el = data[i],
-        amount = (!isNaN(parseInt(el.Tran_Amt1))) ? parseInt(el.Tran_Amt1) : 0;
+        parse_amount = parseInt(el.Tran_Amt1.replace('$', ''))
+        amount = (!isNaN(parse_amount) ? parse_amount : 0);
         candidate = el.Filer_NamL,
         donor = el.Tran_NamF + ' ' + el.Tran_NamL
         city = el.Tran_City,

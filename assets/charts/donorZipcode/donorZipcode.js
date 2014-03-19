@@ -14,8 +14,9 @@
 
 		for (var i = 0; i < data.length; i++) {
 			var el = data[i],
-				candidate = el.Filer_NamL,
-				amount = (!isNaN(parseInt(el.Tran_Amt1))) ? parseInt(el.Tran_Amt1) : 0,
+				parse_amount = parseInt(el.Tran_Amt1.replace('$', ''))
+        		amount = (!isNaN(parse_amount) ? parse_amount : 0);
+        		candidate = el.Filer_NamL,
 				zip = el.Tran_Zip4.substring(0, 5)
 				city = el.Tran_City;
 
@@ -27,6 +28,8 @@
 			// Create a list of all candidates
 			if (!candidates[candidate]) { candidates[candidate] = true; }
 		}
+		console.log(amounts);
+		console.log(candidates);
 		var candidates = _.keys(candidates);
 		// End of data processing
 
